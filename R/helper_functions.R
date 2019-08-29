@@ -76,3 +76,56 @@ rename_columns <- function(x) {
 
   return(x)
 }
+
+#' Translate statistic column
+#'
+#' Very often statistical methods use their own esoteric names for
+#' common (and less common) statistical methods. This method
+#' translates those esoteric names to hopefully more sensible names
+#' using a dictionary.
+#'
+#' @param tibble A tibble with a column called 'statistic'
+#' @param dictionary A dictionary
+#'
+#' @return The provided tibble with the values in the column
+#'     'statistic' replaced according to the dictionary
+#'
+translate_statistic <- function(tibble, dictionary) {
+  if(!is_dictionary(dictionary)) {
+    stop("Provided dictionary is of a wrong format")
+  }
+  if(!tibble::is_tibble(tibble)) {
+    stop("Provided tibble is not actually a tibble")
+  }
+  if(!("statistic" %in% names(tibble))) {
+    stop("column 'statistic' not found in provided tibble")
+  }
+
+  # Depending on whether the column 'value' exists in the provided
+  # tibble, dplyr's join either will or will not suffix the
+  # dictionarys 'value' column with ".dict"
+  val <- ifelse("value" %in% names(tibble),
+                expr(value.dict),
+                expr(value))
+  
+  dplyr::left_join(tibble,
+                   dictionary,
+                   by = c("statistic" = "key"),
+                   suffix = c("",".dict")) %>%
+    dplyr::mutate(statistic = dplyr::if_else(is.na(!!val),
+                                             statistic,
+                                             !!val)) %>%
+      dplyr::select(-!!val) # Cleanup
+}
+
+#' Tests whether something is a dictionary
+#'
+#' @param object The object to test
+#' @return TRUE if the object is a dictionary, FALSE otherwise
+is_dictionary <- function(object) {
+    tibble::is_tibble(object) &
+        "key" %in% names(object) &
+        "value" %in% names(object) &
+        ncol(object) == 2
+}
+

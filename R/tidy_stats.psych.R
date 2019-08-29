@@ -193,5 +193,17 @@ tidy_stats.psych <- function(model, args = NULL) {
       supported.")
   }
 
+  # Rename statistics according to psych-specific dictionary
+  dictionary <- tibble::tribble(~key, ~value,
+                          "raw alpha", "raw_alpha",
+                          "standardized alpha", "std_alpha",
+                          "average r", "average_r",
+                          "signal/noise ratio", "signal_noise_ratio",
+                          "alpha SE", "alpha_standard_error",
+                          "median r", "median_r",
+                          "raw alpha (lower)", "raw_alpha_lower",
+                          "raw alpha (upper)", "raw_alpha_upper")
+  output <- translate_statistic(as_tibble(output), dictionary)
+
   return(output)
 }

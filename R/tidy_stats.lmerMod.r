@@ -108,6 +108,11 @@ tidy_stats.lmerMod <- function(model, args = NULL) {
   # Add method
   output <- dplyr::mutate(output, method = "Linear mixed model {lme4}")
 
+  # Rename statistics according to lmerMod-specific dictionary
+  dictionary <- tibble::tribble(~key, ~value,
+                          "b", "estimate")
+  output <- translate_statistic(output, dictionary)
+
   # Order variables
   output <- dplyr::select(output, group, term_nr, term, statistic, value,
     method)
